@@ -9,14 +9,14 @@ public class BG : MonoBehaviour
     public GameObject leftWall;
     public GameObject rightWall;
     public float zzz;
-    private void Start()
-    {
-        PositionWalls();
-    }
-    private void Update()
-    {
-        PositionWalls();
-    }
+    //private void Start()
+    //{
+    //    PositionWalls();
+    //}
+    //private void Update()
+    //{
+    //    PositionWalls();
+    //}
 
     private void PositionWalls()
     {
