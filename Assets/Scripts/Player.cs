@@ -4,27 +4,43 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] private LineRenderer _lineRenderer;
-    [SerializeField] private CapsuleCollider2D _playerCollider;
-    [SerializeField] private BoxCollider2D _endPointCollider;
-    [SerializeField] private int _curPointIdx = 0;
-    [SerializeField] private float _moveSpeed = 4f;
-    [SerializeField] private float _rotationSpeed = 10f;
-    [SerializeField] private bool _isMoving;
-    [SerializeField] private List<Vector3> _pathPoints;
+    public List<Sprite> _listSpriteCar = new();
+    [SerializeField] protected LineRenderer _lineRenderer;
+    [SerializeField] protected CapsuleCollider2D _playerCollider;
+    public BoxCollider2D EndPointCollider;
+    [SerializeField] protected int _curPointIdx = 0;
+    [SerializeField] protected float _moveSpeed = 4f;
+    [SerializeField] protected float _rotationSpeed = 10f;
+    public bool IsMoving;
+    public bool IsFinish;
+    [SerializeField] protected int _starCount = 0;
+    [SerializeField] protected List<Vector3> _pathPoints;
 
-    private void OnTriggerEnter2D(Collider2D other)
+    public PlayerClone PlayerClone;
+
+    protected virtual void OnEnable()
+    {
+        IsFinish = false;
+    }
+
+    protected virtual void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("Star"))
+        {
+            _starCount++;
             other.gameObject.SetActive(false);
+        }
 
         if (other.gameObject.layer == LayerMask.NameToLayer("BG"))
             transform.gameObject.SetActive(false);
+
+        if (other.TryGetComponent<PlayerClone>(out var playerClone))
+            transform.gameObject.SetActive(false);
     }
 
-    private void Update()
+    protected virtual void Update()
     {
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && !IsMoving && !IsFinish)
         {
             DrawLine();
             _curPointIdx = 0;
@@ -32,20 +48,20 @@ public class Player : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            if (_pathPoints.Count < 2 || !_endPointCollider.OverlapPoint(_pathPoints[^1]))
+            if (_pathPoints.Count < 2 || !EndPointCollider.OverlapPoint(_pathPoints[^1]))
             {
                 _pathPoints.Clear();
                 _lineRenderer.positionCount = 0;
             }
-            else _isMoving = true;
+            else IsMoving = true;
         }
 
-        if (!_isMoving || _curPointIdx >= _pathPoints.Count) return;
-        if (_isMoving)
+        if (PlayerClone != null && !PlayerClone.IsMoving && !PlayerClone.IsFinish) return;
+        if (IsMoving)
             PlayerMoving();
     }
 
-    private void PlayerMoving()
+    protected virtual void PlayerMoving()
     {
         Vector3 target = _pathPoints[_curPointIdx];
         target.z = 0;
@@ -65,14 +81,34 @@ public class Player : MonoBehaviour
             _lineRenderer.SetPositions(_pathPoints.ToArray());
             if (_pathPoints.Count == 0)
             {
-                _isMoving = false;
-                Debug.Log("zzzzzz");
+                IsMoving = false;
+                IsFinish = true;
+                TryFinishLevel();
             }
         }
     }
 
+    public void TryFinishLevel()
+    {
+        if (IsFinish && PlayerClone != null && PlayerClone.IsFinish)
+        {
+            LevelManager.Ins.ListLevelStar[LevelManager.Ins.IDLevel] = _starCount;
+            _starCount = 0;
+            LevelManager.Ins.IDLevel++;
+            LevelManager.Ins.ListLevelUnLock[LevelManager.Ins.IDLevel] = true;
 
-    private void DrawLine()
+            foreach (Transform child in UIManager.Ins.Levels.transform)
+            {
+                if (child.GetComponent<Player>() == null)
+                    child.gameObject.SetActive(false);
+            }
+
+            UIManager.Ins.Levels.gameObject.SetActive(false);
+            UIManager.Ins.UIPanelLevel.SetActive(true);
+        }
+    }
+
+    protected virtual void DrawLine()
     {
         Vector2 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3 mousePoint2D = new(mouseWorldPos.x, mouseWorldPos.y, 1f);
