@@ -4,15 +4,18 @@ using UnityEngine;
 
 public class PlayerClone : Player
 {
-    [SerializeField] Player player;
+    [SerializeField] private Player player;
+
     protected override void OnEnable()
     {
         base.OnEnable();
         player.PlayerClone = this;
+        Revive();
     }
+
     protected override void Update()
     {
-        if (Input.GetMouseButton(0) && !IsMoving && !IsFinish)
+        if (Input.GetMouseButton(0) && !_isPathReady && !IsFinish)
         {
             DrawLine();
             _curPointIdx = 0;
@@ -25,53 +28,55 @@ public class PlayerClone : Player
                 _pathPoints.Clear();
                 _lineRenderer.positionCount = 0;
             }
-            else IsMoving = true;
+            else
+            {
+                _isPathReady = true;
+                TryStartMoving();
+            }
         }
 
-        if (!player.IsMoving && !player.IsFinish) return;
         if (IsMoving)
             PlayerMoving();
+    }
+
+    protected override void TryStartMoving()
+    {
+        if (player.IsPathReady())
+        {
+            IsMoving = true;
+            player.StartMoving();
+        }
     }
 
     protected override void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("Star"))
         {
-            _starCount++;
+            this.player.StarCount++;
             other.gameObject.SetActive(false);
         }
 
         if (other.gameObject.layer == LayerMask.NameToLayer("BG"))
-            transform.gameObject.SetActive(false);
+        {
+            Revive();
+            this.player.Revive();
+            UIManager.Ins.LevelPrefab.BtnAction(LevelManager.Ins.IDLevel);
+        }
 
-        if (other.TryGetComponent<Player>(out var player))
-            transform.gameObject.SetActive(false);
+        if (other.TryGetComponent<PlayerClone>(out var playerClone))
+        {
+            Revive();
+            this.player.Revive();
+            UIManager.Ins.LevelPrefab.BtnAction(LevelManager.Ins.IDLevel);
+        }
     }
-
-    protected override void PlayerMoving()
+    public override void Revive()
     {
-        Vector3 target = _pathPoints[_curPointIdx];
-        target.z = 0;
-        transform.position = Vector3.MoveTowards(transform.position, target, _moveSpeed * Time.deltaTime);
-        Vector3 direction = target - transform.position;
-        if (direction != Vector3.zero)
-        {
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            Quaternion targetRotation = Quaternion.Euler(0, 0, angle - 90f);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime);
-        }
-
-        if (Vector3.Distance(transform.position, target) < 0.05f)
-        {
-            _pathPoints.RemoveAt(_curPointIdx);
-            _lineRenderer.positionCount = _pathPoints.Count;
-            _lineRenderer.SetPositions(_pathPoints.ToArray());
-            if (_pathPoints.Count == 0)
-            {
-                IsFinish = true;
-                IsMoving = false;
-                TryFinishLevel();
-            }
-        }
+        base.Revive();
+        if (LevelManager.Ins.IDLevel == 5) transform.SetLocalPositionAndRotation(new Vector3(1f, -3f, 0f), Quaternion.Euler(0, 0, 0));
+        else if (LevelManager.Ins.IDLevel == 6) transform.SetLocalPositionAndRotation(new Vector3(0.5f, 3f, 0f), Quaternion.Euler(0, 0, 180));
+        else if (LevelManager.Ins.IDLevel == 7) transform.SetLocalPositionAndRotation(new Vector3(2.8f, -3f, 0f), Quaternion.Euler(0, 0, 180));
+        else if (LevelManager.Ins.IDLevel == 10) transform.SetLocalPositionAndRotation(new Vector3(2.5f, 3.5f, 0f), Quaternion.Euler(0, 0, 90));
+        else if (LevelManager.Ins.IDLevel == 11) transform.SetLocalPositionAndRotation(new Vector3(2.5f, -3.5f, 0f), Quaternion.Euler(0, 0, 0));
     }
 }

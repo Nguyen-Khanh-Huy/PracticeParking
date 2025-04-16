@@ -11,6 +11,7 @@ public class UIManager : Singleton<UIManager>
     public GameObject UIPanelLevel;
     public GameObject UIOnMusic;
     public GameObject UIOffMusic;
+    public GameObject UIBtnHomeInPlay;
 
     public Button BtnPlay;
     public Button BtnOnMusic;
@@ -18,8 +19,9 @@ public class UIManager : Singleton<UIManager>
 
     public Button BtnHomeInLevel;
 
-    public Button BtnRestart;
     public Button BtnHomeInPlay;
+
+    public UILevelPrefab LevelPrefab;
 
     public List<Vector2> ListPlayerPos = new();
     public List<Vector3> ListPlayerRos = new();
@@ -60,7 +62,15 @@ public class UIManager : Singleton<UIManager>
 
     private void BtnHomeAction()
     {
+        foreach (Transform child in Levels.transform)
+        {
+            if (child.GetComponent<Player>() == null)
+                child.gameObject.SetActive(false);
+        }
+        Levels.gameObject.SetActive(false);
         UIPanelMenu.SetActive(true);
         UIPanelLevel.SetActive(false);
+        UIBtnHomeInPlay.SetActive(false);
+
     }
 }

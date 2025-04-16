@@ -38,9 +38,11 @@ public class UILevelPrefab : MonoBehaviour
                 starChild.gameObject.SetActive(true);
             }
         }
-        Transform playerCloneParent = UIManager.Ins.Levels.ListLevels[idx].transform.Find("PlayerClone");
-        if (playerCloneParent != null) playerCloneParent.gameObject.SetActive(true);
+        //Transform playerCloneParent = UIManager.Ins.Levels.ListLevels[idx].transform.Find("PlayerClone");
+        //if (playerCloneParent != null) playerCloneParent.gameObject.SetActive(true);
         UIManager.Ins.Player.transform.SetPositionAndRotation(UIManager.Ins.ListPlayerPos[idx], Quaternion.Euler(UIManager.Ins.ListPlayerRos[idx]));
+        UIManager.Ins.UIBtnHomeInPlay.SetActive(true);
+
         UIManager.Ins.UIPanelLevel.SetActive(false);
     }
 }

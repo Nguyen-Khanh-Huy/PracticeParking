@@ -9,7 +9,6 @@ public class LevelManager : Singleton<LevelManager>
     public List<bool> ListLevelUnLock = new();
     public List<int> ListLevelStar = new();
 
-
     public override void Awake()
     {
         base.Awake();

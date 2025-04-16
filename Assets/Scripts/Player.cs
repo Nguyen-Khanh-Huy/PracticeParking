@@ -8,39 +8,61 @@ public class Player : MonoBehaviour
     [SerializeField] protected LineRenderer _lineRenderer;
     [SerializeField] protected CapsuleCollider2D _playerCollider;
     public BoxCollider2D EndPointCollider;
+
     [SerializeField] protected int _curPointIdx = 0;
     [SerializeField] protected float _moveSpeed = 4f;
     [SerializeField] protected float _rotationSpeed = 10f;
     public bool IsMoving;
     public bool IsFinish;
-    [SerializeField] protected int _starCount = 0;
+    public int StarCount = 0;
     [SerializeField] protected List<Vector3> _pathPoints;
 
     public PlayerClone PlayerClone;
 
+    private bool _finishTriggered = false;
+    public bool _isPathReady = false;
+
     protected virtual void OnEnable()
     {
-        IsFinish = false;
+        Revive();
     }
 
     protected virtual void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("Star"))
         {
-            _starCount++;
+            StarCount++;
             other.gameObject.SetActive(false);
         }
 
         if (other.gameObject.layer == LayerMask.NameToLayer("BG"))
-            transform.gameObject.SetActive(false);
+        {
+            if (PlayerClone != null) PlayerClone.Revive();
+            Revive();
+            UIManager.Ins.LevelPrefab.BtnAction(LevelManager.Ins.IDLevel);
+        }
 
         if (other.TryGetComponent<PlayerClone>(out var playerClone))
-            transform.gameObject.SetActive(false);
+        {
+            playerClone.Revive();
+            Revive();
+            UIManager.Ins.LevelPrefab.BtnAction(LevelManager.Ins.IDLevel);
+        }
     }
 
+    public virtual void Revive()
+    {
+        _pathPoints.Clear();
+        _lineRenderer.positionCount = 0;
+        IsFinish = false;
+        IsMoving = false;
+        _finishTriggered = false;
+        _isPathReady = false;
+        StarCount = 0;
+    }
     protected virtual void Update()
     {
-        if (Input.GetMouseButton(0) && !IsMoving && !IsFinish)
+        if (Input.GetMouseButton(0) && !_isPathReady && !IsFinish)
         {
             DrawLine();
             _curPointIdx = 0;
@@ -53,19 +75,43 @@ public class Player : MonoBehaviour
                 _pathPoints.Clear();
                 _lineRenderer.positionCount = 0;
             }
-            else IsMoving = true;
+            else
+            {
+                _isPathReady = true;
+                TryStartMoving();
+            }
         }
 
-        if (PlayerClone != null && !PlayerClone.IsMoving && !PlayerClone.IsFinish) return;
         if (IsMoving)
             PlayerMoving();
+
+        if (IsFinish && (PlayerClone == null || PlayerClone.IsFinish) && !_finishTriggered)
+        {
+            TryFinishLevel();
+            _finishTriggered = true;
+        }
     }
+
+    protected virtual void TryStartMoving()
+    {
+        if (PlayerClone == null || PlayerClone.IsPathReady())
+        {
+            IsMoving = true;
+            if (PlayerClone != null)
+                PlayerClone.StartMoving();
+        }
+    }
+
+    public bool IsPathReady() => _isPathReady;
 
     protected virtual void PlayerMoving()
     {
+        if (_pathPoints.Count == 0) return;
+
         Vector3 target = _pathPoints[_curPointIdx];
         target.z = 0;
         transform.position = Vector3.MoveTowards(transform.position, target, _moveSpeed * Time.deltaTime);
+
         Vector3 direction = target - transform.position;
         if (direction != Vector3.zero)
         {
@@ -79,39 +125,44 @@ public class Player : MonoBehaviour
             _pathPoints.RemoveAt(_curPointIdx);
             _lineRenderer.positionCount = _pathPoints.Count;
             _lineRenderer.SetPositions(_pathPoints.ToArray());
+
             if (_pathPoints.Count == 0)
             {
                 IsMoving = false;
                 IsFinish = true;
-                TryFinishLevel();
             }
         }
     }
 
+    public void StartMoving()
+    {
+        IsMoving = true;
+    }
+
     public void TryFinishLevel()
     {
-        if (IsFinish && PlayerClone != null && PlayerClone.IsFinish)
-        {
-            LevelManager.Ins.ListLevelStar[LevelManager.Ins.IDLevel] = _starCount;
-            _starCount = 0;
+        LevelManager.Ins.ListLevelStar[LevelManager.Ins.IDLevel] = StarCount;
+        StarCount = 0;
+
+        if(LevelManager.Ins.IDLevel < 11)
             LevelManager.Ins.IDLevel++;
-            LevelManager.Ins.ListLevelUnLock[LevelManager.Ins.IDLevel] = true;
 
-            foreach (Transform child in UIManager.Ins.Levels.transform)
-            {
-                if (child.GetComponent<Player>() == null)
-                    child.gameObject.SetActive(false);
-            }
-
-            UIManager.Ins.Levels.gameObject.SetActive(false);
-            UIManager.Ins.UIPanelLevel.SetActive(true);
+        LevelManager.Ins.ListLevelUnLock[LevelManager.Ins.IDLevel] = true;
+        foreach (Transform child in UIManager.Ins.Levels.transform)
+        {
+            if (child.GetComponent<Player>() == null)
+                child.gameObject.SetActive(false);
         }
+
+        UIManager.Ins.Levels.gameObject.SetActive(false);
+        UIManager.Ins.UIPanelLevel.SetActive(true);
     }
 
     protected virtual void DrawLine()
     {
         Vector2 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3 mousePoint2D = new(mouseWorldPos.x, mouseWorldPos.y, 1f);
+
         if (_pathPoints.Count == 0)
         {
             if (_playerCollider.OverlapPoint(mousePoint2D))
@@ -123,7 +174,7 @@ public class Player : MonoBehaviour
         }
         else
         {
-            if (Vector2.Distance(mousePoint2D, _pathPoints[_pathPoints.Count - 1]) > 0.1f)
+            if (Vector2.Distance(mousePoint2D, _pathPoints[^1]) > 0.1f)
             {
                 _pathPoints.Add(mouseWorldPos);
                 _lineRenderer.positionCount = _pathPoints.Count;
