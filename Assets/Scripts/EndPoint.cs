@@ -12,6 +12,7 @@ public class EndPoint : MonoBehaviour
 
     private void OnEnable()
     {
+        IdxRandom = -1;
         int rd = Random.Range(0, _listSpriteEndPoint.Count);
         GetComponent<SpriteRenderer>().sprite = _listSpriteEndPoint[rd];
 

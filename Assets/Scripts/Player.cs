@@ -27,6 +27,12 @@ public class Player : MonoBehaviour
         Revive();
     }
 
+    protected virtual void OnDisable()
+    {
+        PlayerClone = null;
+        EndPointCollider = null;
+    }
+
     protected virtual void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("Star"))
