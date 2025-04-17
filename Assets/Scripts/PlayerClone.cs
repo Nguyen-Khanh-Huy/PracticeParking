@@ -104,8 +104,8 @@ public class PlayerClone : Player
         base.Revive();
         if (LevelManager.Ins.IDLevel == 5) transform.SetLocalPositionAndRotation(new Vector3(1f, -3f, 0f), Quaternion.Euler(0, 0, 0));
         else if (LevelManager.Ins.IDLevel == 6) transform.SetLocalPositionAndRotation(new Vector3(0.5f, 3f, 0f), Quaternion.Euler(0, 0, 180));
-        else if (LevelManager.Ins.IDLevel == 7) transform.SetLocalPositionAndRotation(new Vector3(2.8f, -3f, 0f), Quaternion.Euler(0, 0, 180));
-        else if (LevelManager.Ins.IDLevel == 10) transform.SetLocalPositionAndRotation(new Vector3(2.5f, 3.5f, 0f), Quaternion.Euler(0, 0, 90));
-        else if (LevelManager.Ins.IDLevel == 11) transform.SetLocalPositionAndRotation(new Vector3(2.5f, -3.5f, 0f), Quaternion.Euler(0, 0, 0));
+        else if (LevelManager.Ins.IDLevel == 7) transform.SetLocalPositionAndRotation(new Vector3(1.65f, -3f, 0f), Quaternion.Euler(0, 0, 180));
+        else if (LevelManager.Ins.IDLevel == 10) transform.SetLocalPositionAndRotation(new Vector3(1.5f, 3.5f, 0f), Quaternion.Euler(0, 0, 90));
+        else if (LevelManager.Ins.IDLevel == 11) transform.SetLocalPositionAndRotation(new Vector3(1.6f, -3.5f, 0f), Quaternion.Euler(0, 0, 0));
     }
 }
