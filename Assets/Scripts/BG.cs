@@ -8,33 +8,40 @@ public class BG : MonoBehaviour
     public GameObject bottomWall;
     public GameObject leftWall;
     public GameObject rightWall;
-    public float zzz;
-    //private void Start()
-    //{
-    //    PositionWalls();
-    //}
-    //private void Update()
-    //{
-    //    PositionWalls();
-    //}
+
+    // private void Start()
+    // {
+    //     PositionWalls();
+    // }
+    // private void Update()
+    // {
+    //     PositionWalls();
+    // }
 
     private void PositionWalls()
     {
-        Vector3 screenTopRight = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, Camera.main.transform.position.z));
-        Vector3 screenBottomLeft = Camera.main.ScreenToWorldPoint(new Vector3(0, 0, Camera.main.transform.position.z));
+        Camera cam = Camera.main;
+        float camHeight = 2f * cam.orthographicSize;
+        float camWidth = camHeight * cam.aspect;
 
-        Debug.Log(Screen.width / 2 );
+        // Position walls
+        topWall.transform.position = new Vector3(0, cam.orthographicSize + (topWall.GetComponent<SpriteRenderer>().bounds.size.y / 2), 0);
+        bottomWall.transform.position = new Vector3(0, -cam.orthographicSize - (bottomWall.GetComponent<SpriteRenderer>().bounds.size.y / 2), 0);
+        leftWall.transform.position = new Vector3(-camWidth / 2f - (leftWall.GetComponent<SpriteRenderer>().bounds.size.x / 2), 0, 0);
+        rightWall.transform.position = new Vector3(camWidth / 2f + (rightWall.GetComponent<SpriteRenderer>().bounds.size.x / 2), 0, 0);
 
+        // Scale walls
+        float desiredWidth = camWidth;
+        float desiredHeight = camHeight;
 
-        topWall.transform.position = new Vector3(0, screenTopRight.y, 0);
-        bottomWall.transform.position = new Vector3(0, screenBottomLeft.y, 0);
-        leftWall.transform.position = new Vector3(screenBottomLeft.x, 0, 0);
-        rightWall.transform.position = new Vector3(screenTopRight.x, 0, 0);
+        SpriteRenderer topSR = topWall.GetComponent<SpriteRenderer>();
+        SpriteRenderer bottomSR = bottomWall.GetComponent<SpriteRenderer>();
 
-        topWall.transform.localScale = new Vector3(screenTopRight.x * 2, topWall.transform.localScale.y, topWall.transform.localScale.z);
-        bottomWall.transform.localScale = new Vector3(screenTopRight.x * 2, bottomWall.transform.localScale.y, bottomWall.transform.localScale.z);
-        leftWall.transform.localScale = new Vector3(leftWall.transform.localScale.x, screenTopRight.y * 2 , leftWall.transform.localScale.z);
-        rightWall.transform.localScale = new Vector3(rightWall.transform.localScale.x, screenTopRight.y * 2, rightWall.transform.localScale.z);
+        float topOriginalWidth = topSR.sprite.bounds.size.x;
+        float bottomOriginalWidth = bottomSR.sprite.bounds.size.x;
+
+        topWall.transform.localScale = new Vector3(desiredWidth / topOriginalWidth, 1, 1);
+        bottomWall.transform.localScale = new Vector3(desiredWidth / bottomOriginalWidth, 1, 1);
     }
 
 }
