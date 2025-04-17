@@ -15,6 +15,7 @@ public class PlayerClone : Player
 
     protected override void Update()
     {
+#if UNITY_EDITOR
         if (Input.GetMouseButton(0) && !_isPathReady && !IsFinish)
         {
             DrawLine();
@@ -34,7 +35,32 @@ public class PlayerClone : Player
                 TryStartMoving();
             }
         }
+#else
+    if (Input.touchCount > 0)
+    {
+        Touch touch = Input.GetTouch(0);
 
+        if (touch.phase == TouchPhase.Moved && !_isPathReady && !IsFinish)
+        {
+            DrawLine();
+            _curPointIdx = 0;
+        }
+
+        if (touch.phase == TouchPhase.Ended)
+        {
+            if (_pathPoints.Count < 2 || !EndPointCollider.OverlapPoint(_pathPoints[^1]))
+            {
+                _pathPoints.Clear();
+                _lineRenderer.positionCount = 0;
+            }
+            else
+            {
+                _isPathReady = true;
+                TryStartMoving();
+            }
+        }
+    }
+#endif
         if (IsMoving)
             PlayerMoving();
     }
@@ -52,12 +78,14 @@ public class PlayerClone : Player
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("Star"))
         {
+            AudioManager.Ins.PlaySFX(AudioManager.Ins.SfxBtnClick);
             this.player.StarCount++;
             other.gameObject.SetActive(false);
         }
 
         if (other.gameObject.layer == LayerMask.NameToLayer("BG"))
         {
+            AudioManager.Ins.PlaySFX(AudioManager.Ins.SfxHit);
             Revive();
             this.player.Revive();
             UIManager.Ins.LevelPrefab.BtnAction(LevelManager.Ins.IDLevel);
@@ -65,6 +93,7 @@ public class PlayerClone : Player
 
         if (other.TryGetComponent<PlayerClone>(out var playerClone))
         {
+            AudioManager.Ins.PlaySFX(AudioManager.Ins.SfxHit);
             Revive();
             this.player.Revive();
             UIManager.Ins.LevelPrefab.BtnAction(LevelManager.Ins.IDLevel);

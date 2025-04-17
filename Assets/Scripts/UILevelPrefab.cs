@@ -43,6 +43,7 @@ public class UILevelPrefab : MonoBehaviour
         UIManager.Ins.Player.transform.SetPositionAndRotation(UIManager.Ins.ListPlayerPos[idx], Quaternion.Euler(UIManager.Ins.ListPlayerRos[idx]));
         UIManager.Ins.UIBtnHomeInPlay.SetActive(true);
 
+        AudioManager.Ins.PlaySFX(AudioManager.Ins.SfxBtnClick);
         UIManager.Ins.UIPanelLevel.SetActive(false);
     }
 }

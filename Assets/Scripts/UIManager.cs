@@ -42,26 +42,50 @@ public class UIManager : Singleton<UIManager>
 
     private void BtnPlayAction()
     {
+        AudioManager.Ins.PlaySFX(AudioManager.Ins.SfxBtnClick);
         UIPanelMenu.SetActive(false);
         UIPanelLevel.SetActive(true);
     }
 
     private void BtnOnMusicAction()
     {
+        AudioManager.Ins.PlaySFX(AudioManager.Ins.SfxBtnClick);
         UIOnMusic.SetActive(false);
         UIOffMusic.SetActive(true);
-        Debug.Log("Off");
+
+        if (AudioManager.Ins.AusMusic.isPlaying)
+        {
+            AudioManager.Ins.AusMusic.Pause();
+            AudioManager.Ins.AusSFX.volume = 0f;
+        }
+        else
+        {
+            AudioManager.Ins.AusMusic.UnPause();
+            AudioManager.Ins.AusSFX.volume = 1f;
+        }
     }
 
     private void BtnOffMusicAction()
     {
+        AudioManager.Ins.PlaySFX(AudioManager.Ins.SfxBtnClick);
         UIOnMusic.SetActive(true);
         UIOffMusic.SetActive(false);
-        Debug.Log("On");
+
+        if (AudioManager.Ins.AusMusic.isPlaying)
+        {
+            AudioManager.Ins.AusMusic.Pause();
+            AudioManager.Ins.AusSFX.volume = 0f;
+        }
+        else
+        {
+            AudioManager.Ins.AusMusic.UnPause();
+            AudioManager.Ins.AusSFX.volume = 1f;
+        }
     }
 
     private void BtnHomeAction()
     {
+        AudioManager.Ins.PlaySFX(AudioManager.Ins.SfxBtnClick);
         foreach (Transform child in Levels.transform)
         {
             if (child.GetComponent<Player>() == null)
@@ -71,6 +95,5 @@ public class UIManager : Singleton<UIManager>
         UIPanelMenu.SetActive(true);
         UIPanelLevel.SetActive(false);
         UIBtnHomeInPlay.SetActive(false);
-
     }
 }

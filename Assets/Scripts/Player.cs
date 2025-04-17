@@ -31,12 +31,14 @@ public class Player : MonoBehaviour
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("Star"))
         {
+            AudioManager.Ins.PlaySFX(AudioManager.Ins.SfxCollect);
             StarCount++;
             other.gameObject.SetActive(false);
         }
 
         if (other.gameObject.layer == LayerMask.NameToLayer("BG"))
         {
+            AudioManager.Ins.PlaySFX(AudioManager.Ins.SfxHit);
             if (PlayerClone != null) PlayerClone.Revive();
             Revive();
             UIManager.Ins.LevelPrefab.BtnAction(LevelManager.Ins.IDLevel);
@@ -44,6 +46,7 @@ public class Player : MonoBehaviour
 
         if (other.TryGetComponent<PlayerClone>(out var playerClone))
         {
+            AudioManager.Ins.PlaySFX(AudioManager.Ins.SfxHit);
             playerClone.Revive();
             Revive();
             UIManager.Ins.LevelPrefab.BtnAction(LevelManager.Ins.IDLevel);
@@ -62,6 +65,7 @@ public class Player : MonoBehaviour
     }
     protected virtual void Update()
     {
+#if UNITY_EDITOR
         if (Input.GetMouseButton(0) && !_isPathReady && !IsFinish)
         {
             DrawLine();
@@ -81,6 +85,32 @@ public class Player : MonoBehaviour
                 TryStartMoving();
             }
         }
+#else
+    if (Input.touchCount > 0)
+    {
+        Touch touch = Input.GetTouch(0);
+
+        if (touch.phase == TouchPhase.Moved && !_isPathReady && !IsFinish)
+        {
+            DrawLine();
+            _curPointIdx = 0;
+        }
+
+        if (touch.phase == TouchPhase.Ended)
+        {
+            if (_pathPoints.Count < 2 || !EndPointCollider.OverlapPoint(_pathPoints[^1]))
+            {
+                _pathPoints.Clear();
+                _lineRenderer.positionCount = 0;
+            }
+            else
+            {
+                _isPathReady = true;
+                TryStartMoving();
+            }
+        }
+    }
+#endif
 
         if (IsMoving)
             PlayerMoving();
@@ -91,6 +121,7 @@ public class Player : MonoBehaviour
             _finishTriggered = true;
         }
     }
+
 
     protected virtual void TryStartMoving()
     {
@@ -144,7 +175,7 @@ public class Player : MonoBehaviour
         LevelManager.Ins.ListLevelStar[LevelManager.Ins.IDLevel] = StarCount;
         StarCount = 0;
 
-        if(LevelManager.Ins.IDLevel < 11)
+        if (LevelManager.Ins.IDLevel < 11)
             LevelManager.Ins.IDLevel++;
 
         LevelManager.Ins.ListLevelUnLock[LevelManager.Ins.IDLevel] = true;
@@ -153,7 +184,7 @@ public class Player : MonoBehaviour
             if (child.GetComponent<Player>() == null)
                 child.gameObject.SetActive(false);
         }
-
+        UIManager.Ins.UIBtnHomeInPlay.SetActive(false);
         UIManager.Ins.Levels.gameObject.SetActive(false);
         UIManager.Ins.UIPanelLevel.SetActive(true);
     }
